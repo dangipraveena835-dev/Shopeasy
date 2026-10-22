@@ -15,7 +15,7 @@ app.get('/api/health', (req, res) => {
   const row = db.prepare('SELECT COUNT(*) AS total FROM products').get();
   res.json({ status: 'ok', products: row.total });
 });
-
+app.use('/api/auth', require('./routes/auth'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
