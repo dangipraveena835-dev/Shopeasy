@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cart - ShopEasy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <div class="container">
+    <h2>My Cart</h2>
+    <div id="msg" class="msg"></div>
+    <div id="cart">Loading...</div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    renderNav();
+    if (!getToken()) window.location = '/login.html';
+
+    async function loadCart() {
+      const data = await api('/cart');
+      const box = document.getElementById('cart');
+
+      if (data.items.length === 0) {
+        box.innerHTML = '<p>Your cart is empty. <a href="index.html">Shop now</a></p>';
+        return;
+      }
+      const rows = data.items.map(i => `
+        <tr>
+          <td>${escapeHtml(i.name)}</td>
+          <td>₹${i.price}</td>
+          <td>
+            <div class="qty">
+              <button data-action="change" data-id="${i.product_id}" data-qty="${i.quantity - 1}">-</button>
+              <span>${i.quantity}</span>
+              <button data-action="change" data-id="${i.product_id}" data-qty="${i.quantity + 1}">+</button>
+            </div>
+          </td>
+          <td>₹${i.subtotal}</td>
+          <td><button data-action="remove" data-id="${i.product_id}">Remove</button></td>
+        </tr>`).join('');
+
+      box.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <tr><th>Product</th><th>Price</th><th>Quantity</th><th>Total</th><th></th></tr>
+            ${rows}
+          </table>
+        </div>
+        <div class="total">Grand Total: <b>₹${data.total}</b></div>
+        <a href="checkout.html"><button class="btn">Proceed to Checkout</button></a>`;
+    }
+
+    document.getElementById('cart').addEventListener('click', async (e) => {
+      const action = e.target.dataset.action;
+      if (!action) return;
+      const id = e.target.dataset.id;
+      try {
+        if (action === 'change') {
+          const qty = Number(e.target.dataset.qty);
+          if (qty < 1) return;
+          await api('/cart/' + id, { method: 'PUT', body: JSON.stringify({ quantity: qty }) });
+        } else {
+          await api('/cart/' + id, { method: 'DELETE' });
+        }
+        loadCart();
+      } catch (err) {
+        showMessage(err.message, 'err');
+      }
+    });
+
+    loadCart();
+  </script>
+</body>
+</html>

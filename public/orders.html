@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Orders - ShopEasy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <div class="container">
+    <h2>My Orders</h2>
+    <div id="msg" class="msg"></div>
+    <div id="orders">Loading...</div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    renderNav();
+    if (!getToken()) window.location = '/login.html';
+
+    async function loadOrders() {
+      try {
+        const list = await api('/orders');
+        const box = document.getElementById('orders');
+
+        if (list.length === 0) {
+          box.innerHTML = '<p>No orders yet. <a href="index.html">Start shopping</a></p>';
+          return;
+        }
+        // Har order ki items ke saath detail mangao
+        const details = await Promise.all(list.map(o => api('/orders/' + o.id)));
+
+        box.innerHTML = details.map(o => `
+          <div class="box">
+            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+              <b>Order #${o.id}</b>
+              <span class="badge ${o.status}">${escapeHtml(o.status)}</span>
+            </div>
+            <div class="muted">${new Date(o.created_at + 'Z').toLocaleString('en-IN')}</div>
+            ${o.items.map(i => `<div>${escapeHtml(i.name)} x ${i.quantity} = ₹${i.subtotal}</div>`).join('')}
+            <hr>
+            <b>Total: ₹${o.total_amount}</b> (${escapeHtml(o.payment_method)})
+          </div>`).join('');
+      } catch (err) {
+        showMessage(err.message, 'err');
+      }
+    }
+    loadOrders();
+  </script>
+</body>
+</html>

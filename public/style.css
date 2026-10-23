@@ -18,3 +18,16 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 .msg.ok { background: #d1fae5; color: #065f46; display: block; }
 .msg.err { background: #fee2e2; color: #991b1b; display: block; }
 .msg { position: fixed; top: 70px; right: 20px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+.qty { display: flex; align-items: center; gap: 8px; }
+.qty button { width: 30px; height: 30px; cursor: pointer; }
+.total { text-align: right; font-size: 20px; margin: 16px 0; }
+.box { background: #fff; padding: 16px; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+nav span { color: #fff; }
+.badge { padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; }
+.badge.pending { background: #fef3c7; color: #92400e; }
+.badge.shipped { background: #dbeafe; color: #1e40af; }
+.badge.delivered { background: #d1fae5; color: #065f46; }
+.badge.cancelled { background: #fee2e2; color: #991b1b; }

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout - ShopEasy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <div class="container" style="max-width: 600px;">
+    <h2>Checkout</h2>
+    <div id="msg" class="msg"></div>
+
+    <div class="box" id="summary">Loading...</div>
+
+    <form id="form" class="box" style="display: flex; flex-direction: column; gap: 12px;">
+      <input id="name" placeholder="Full name" required>
+      <input id="phone" placeholder="Phone (10 digits)" required>
+      <textarea id="address" placeholder="Address" required></textarea>
+      <input id="city" placeholder="City" required>
+      <input id="pin" placeholder="PIN code (6 digits)" required>
+      <p class="muted">Payment method: Cash on Delivery</p>
+      <button class="btn" type="submit">Place Order</button>
+    </form>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    renderNav();
+    if (!getToken()) window.location = '/login.html';
+
+    async function loadSummary() {
+      const data = await api('/cart');
+      if (data.items.length === 0) { window.location = '/cart.html'; return; }
+      document.getElementById('summary').innerHTML =
+        data.items.map(i => `<div>${escapeHtml(i.name)} x ${i.quantity} = ₹${i.subtotal}</div>`).join('') +
+        `<hr><b>Total: ₹${data.total}</b>`;
+    }
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const pin = document.getElementById('pin').value.trim();
+
+      // Client side validation
+      if (!/^\d{10}$/.test(phone)) return showMessage('Phone must be 10 digits', 'err');
+      if (!/^\d{6}$/.test(pin)) return showMessage('PIN code must be 6 digits', 'err');
+
+      try {
+        const result = await api('/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            shipping_name: name,
+            shipping_phone: phone,
+            shipping_address: address + ', ' + city + ' - ' + pin
+          })
+        });
+        window.location = '/success.html?id=' + result.orderId;
+      } catch (err) {
+        showMessage(err.message, 'err');
+      }
+    });
+
+    loadSummary();
+  </script>
+</body>
+</html>

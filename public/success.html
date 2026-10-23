@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order Placed - ShopEasy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <div class="container" style="max-width: 600px;">
+    <div id="msg" class="msg"></div>
+    <div class="box" id="order">Loading...</div>
+    <a href="index.html"><button class="btn">Continue Shopping</button></a>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    renderNav();
+    if (!getToken()) window.location = '/login.html';
+
+    async function loadOrder() {
+      const id = new URLSearchParams(window.location.search).get('id');
+      try {
+        const o = await api('/orders/' + id);
+        document.getElementById('order').innerHTML =
+          `<h2>Order placed successfully!</h2>
+           <p>Order ID: <b>#${o.id}</b></p>` +
+          o.items.map(i => `<div>${escapeHtml(i.name)} x ${i.quantity} = ₹${i.subtotal}</div>`).join('') +
+          `<hr><b>Total: ₹${o.total_amount}</b> (Cash on Delivery)
+           <p class="muted">Deliver to: ${escapeHtml(o.shipping_name)}, ${escapeHtml(o.shipping_address)}</p>`;
+      } catch (err) {
+        showMessage(err.message, 'err');
+      }
+    }
+    loadOrder();
+  </script>
+</body>
+</html>
