@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db');
+   const { authenticate, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -41,4 +42,47 @@ router.get('/:id', (req, res) => {
   res.json(product);
 });
 
+// POST /api/products (admin)
+router.post('/', authenticate, adminOnly, (req, res) => {
+  const { category_id, name, description, price, stock, image_url } = req.body;
+
+  if (!category_id || !name || price === undefined || Number(price) < 0) {
+    return res.status(400).json({ error: 'category_id, name and a valid price are required' });
+  }
+  const result = db.prepare(`
+    INSERT INTO products (category_id, name, description, price, stock, image_url)
+    VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(category_id, name, description || '', price, stock || 0, image_url || '');
+
+  res.status(201).json({ message: 'Product created', id: result.lastInsertRowid });
+});
+
+// PUT /api/products/:id (admin)
+router.put('/:id', authenticate, adminOnly, (req, res) => {
+  const { category_id, name, description, price, stock, image_url } = req.body;
+
+  if (!category_id || !name || price === undefined || Number(price) < 0) {
+    return res.status(400).json({ error: 'category_id, name and a valid price are required' });
+  }
+  const result = db.prepare(`
+    UPDATE products
+    SET category_id = ?, name = ?, description = ?, price = ?, stock = ?, image_url = ?
+    WHERE id = ?`
+  ).run(category_id, name, description || '', price, stock || 0, image_url || '', req.params.id);
+
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Product not found' });
+  }
+  res.json({ message: 'Product updated' });
+});
+
+// DELETE /api/products/:id (admin) - asli delete nahi, sirf chhupa dete hain
+router.delete('/:id', authenticate, adminOnly, (req, res) => {
+  const result = db.prepare('UPDATE products SET is_active = 0 WHERE id = ?').run(req.params.id);
+
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Product not found' });
+  }
+  res.json({ message: 'Product removed' });
+});
 module.exports = router;
