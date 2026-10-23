@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register - ShopEasy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <div class="container" style="max-width: 420px;">
+    <h2>Create account</h2>
+    <div id="msg" class="msg"></div>
+
+    <form id="form" style="display: flex; flex-direction: column; gap: 12px;">
+      <input id="name" placeholder="Full name" required>
+      <input id="email" type="email" placeholder="Email" required>
+      <input id="password" type="password" placeholder="Password (min 6 characters)" required>
+      <button class="btn" type="submit">Register</button>
+    </form>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    renderNav();
+
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault(); // page reload hone se rokta hai
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Client side validation
+      if (password.length < 6) {
+        return showMessage('Password must be at least 6 characters', 'err');
+      }
+      try {
+        await api('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ name, email, password })
+        });
+        showMessage('Registered! Redirecting to login...', 'ok');
+        setTimeout(() => window.location = '/login.html', 1200);
+      } catch (err) {
+        showMessage(err.message, 'err');
+      }
+    });
+  </script>
+</body>
+</html>
